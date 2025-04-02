@@ -15,14 +15,35 @@ def extract_text_from_pdf(pdf_file):
     return text
 
 def parse_time(time_str):
-    """Convert time string to datetime.time object"""
+    """Convert time string to datetime.time object with PM handling"""
     try:
-        return datetime.strptime(time_str.strip(), '%I:%M%p').time()
+        # Split hours and minutes
+        time_parts = time_str.strip().split(':')
+        if len(time_parts) == 2:
+            hour = int(time_parts[0])
+            minute = int(time_parts[1])
+            
+            # If hour is between 1 and 11, and we're parsing a time that should be PM,
+            # add 12 hours to convert to 24-hour format
+            if 1 <= hour <= 11:
+                # Assume times between 1:00-5:59 are PM
+                hour += 12
+            
+            return datetime.strptime(f"{hour:02d}:{minute:02d}", '%H:%M').time()
     except ValueError:
-        try:
-            return datetime.strptime(time_str.strip(), '%I:%M').time()
-        except ValueError:
-            return None
+        return None
+
+    """Convert time string to datetime.time object without AM/PM conversion"""
+    try:
+        # First try parsing just hours and minutes
+        time_parts = time_str.strip().split(':')
+        if len(time_parts) == 2:
+            hour = int(time_parts[0])
+            minute = int(time_parts[1])
+            return datetime.strptime(f"{hour:02d}:{minute:02d}", '%H:%M').time()
+    except ValueError:
+        return None
+
 
 def parse_location(text):
     """Extract location from text"""
